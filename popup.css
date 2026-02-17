@@ -137,6 +137,26 @@ body {
     flex-shrink: 0;
 }
 
+#bug-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  font-size: 12px;
+  color: #ccc;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+#bug-footer:hover {
+  color: #ffcc00;
+}
+
+#bug-footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Context Menu */
 .context-menu {
     position: absolute;
@@ -273,9 +293,37 @@ body.selection-mode .theme-option.selected {
     border-radius: 4px;
     border: none;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 13whypx;
     font-weight: 600;
 }
+
+#bug-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 0;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+#bug-footer:hover {
+  color: #fff;
+}
+
+#bug-footer svg {
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+#bug-footer:hover svg {
+  opacity: 1;
+}
+
 
 .btn-cancel { background: #38383d; color: #fff; }
 .btn-cancel:hover { background: #4a4a4f; }

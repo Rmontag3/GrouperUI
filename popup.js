@@ -431,3 +431,34 @@ function showThemeContextMenu(e, group, theme) {
 document.addEventListener('click', (e) => {
     if (!contextMenu.contains(e.target)) contextMenu.classList.add('hidden');
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const footer = document.getElementById("bug-footer");
+  if (!footer) return;
+
+  footer.addEventListener("click", async () => {
+    const report = prompt("Describe the bug:");
+    if (!report) return;
+
+    const webhookUrl = "https://discord.com/api/webhooks/1473149576486846687/ujdxZv8Jaei5qNXiNkzEStWkxFuZcu_qgY-KPwKeqiZGNP2Y4LwSvnAVOwwHHD_thAtU";
+    const payload = { content: `Bug report: ${report}` };
+
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        alert("Bug report sent — thank you!");
+      } else {
+        console.error(await res.text());
+        alert("Failed to send report. Check console for details.");
+      }
+    } catch (e) {
+      console.error("Error sending report:", e);
+      alert("Error sending report.");
+    }
+  });
+});

@@ -49,3 +49,24 @@ function applyThemeLogic(theme, isDarkMode) {
         });
     }
 }
+
+browser.runtime.onMessage.addListener(async (message) => {
+  if (message.type === "reportBug") {
+    const webhookUrl = "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_TOKEN";
+    const payload = { content: `🐞 **Bug Report:**\n${message.text}` };
+
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) console.error("Discord error:", await res.text());
+      return { success: res.ok };
+    } catch (e) {
+      console.error("Fetch failed:", e);
+      return { success: false, error: e.message };
+    }
+  }
+});

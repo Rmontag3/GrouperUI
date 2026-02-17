@@ -10,8 +10,12 @@
     "management",
     "alarms"
   ],
+  "host_permissions": [
+    "https://discord.com/api/webhooks/1473149576486846687/ujdxZv8Jaei5qNXiNkzEStWkxFuZcu_qgY-KPwKeqiZGNP2Y4LwSvnAVOwwHHD_thAtU"
+  ],
+
   "background": {
-    "scripts": ["background.js"] 
+    "scripts": ["background.js"]
   },
   "icons": {
     "16": "Icons/Groupmatic16.PNG",

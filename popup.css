@@ -1,0 +1,284 @@
+:root {
+    --bg-color: #ffffff;
+    --bg-hover: #f0f0f4;
+    --text-primary: #15141a;
+    --text-secondary: #5b5b66;
+    --border-color: #ededf0;
+    --accent-color: #0060df;
+    --accent-hover: #003eaa;
+    --danger-color: #d70022;
+    --font-stack: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+    --bg-color: #1c1b22;
+    --bg-hover: #2b2a33;
+    --text-primary: #f9f9fb;
+    --text-secondary: #cfcfd8;
+    --border-color: #3e3b46;
+    --accent-color: #0df; /* Brighter blue for dark mode */
+}
+
+* { box-sizing: border-box; }
+
+body {
+    width: 400px; /* Comfortable width */
+    min-height: 415px;
+    margin: 0;
+    font-family: var(--font-stack);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* Header */
+.header {
+    background-color: var(--bg-color);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+.header-left:hover { opacity: 0.8; }
+.header-title { font-size: 14px; letter-spacing: 0.5px; }
+.icon-plus { font-size: 20px; margin-right: 6px; line-height: 1; }
+
+.header-right { display: flex; gap: 12px; }
+
+.icon-btn {
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.1s;
+}
+.icon-btn:hover { background-color: var(--bg-hover); color: var(--text-primary); }
+
+/* List */
+.group-list { width: 100%; margin: 0; padding: 0; }
+
+.group-item {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-color);
+    cursor: default;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.1s;
+}
+.group-item:hover { background-color: var(--bg-hover); }
+
+.group-name {
+    flex-grow: 1;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: grab;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Add Button inside Group */
+.add-theme-btn {
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-weight: bold; font-size: 16px;
+}
+.add-theme-btn:hover { background-color: var(--border-color); color: var(--accent-color); }
+
+/* Dropdown Menu */
+.theme-nested-menu {
+    display: none;
+    position: absolute;
+    top: 100%; left: 0; width: 100%;
+    background: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 100;
+    padding: 4px 0;
+}
+.group-item:hover .theme-nested-menu { display: block; }
+
+.theme-option {
+    padding: 8px 30px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex; align-items: center;
+    color: var(--text-primary);
+}
+.theme-option:hover { background-color: var(--accent-color); color: #fff; }
+
+.swatch {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: 1px solid rgba(128,128,128,0.2);
+    flex-shrink: 0;
+}
+
+/* Context Menu */
+.context-menu {
+    position: absolute;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 1000;
+    min-width: 120px;
+}
+.hidden { display: none; }
+.context-menu div { padding: 8px 12px; cursor: pointer; font-size: 12px; }
+.context-menu div:hover { background: var(--bg-hover); }
+.context-menu .danger { color: var(--danger-color); }
+/* [Existing CSS...] - Add this to the bottom */
+
+/* ROTATION / SELECTION MODE STYLES */
+
+/* When selection mode is active, the container pulsates slightly or changes border */
+body.selection-mode .group-list {
+    border: 2px solid var(--accent-color);
+    border-radius: 8px;
+    margin: 5px;
+    width: auto;
+}
+
+/* Dim items that are NOT selected */
+body.selection-mode .theme-option {
+    opacity: 0.5;
+    pointer-events: all; /* Ensure click events work */
+}
+
+/* Highlight items that ARE selected */
+body.selection-mode .theme-option.selected {
+    opacity: 1;
+    background-color: rgba(0, 96, 223, 0.1);
+    border-left: 4px solid var(--accent-color);
+}
+
+/* The Toggle Button Activity State */
+#rotate-toggle.active {
+    color: var(--accent-color);
+    fill: rgba(0, 96, 223, 0.1);
+}
+
+/* Badge for items in rotation (visible in normal mode) */
+.rotation-badge {
+    margin-left: auto;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    display: none;
+}
+.in-rotation .rotation-badge { display: block; }
+
+/* [Existing CSS...] */
+
+/* HOVER CONTROLS */
+.group-controls {
+    display: flex;
+    gap: 4px;
+}
+
+/* The Cog (Manage) Button - Default Hidden */
+.manage-group-btn {
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    opacity: 0; /* Invisible by default */
+    transition: opacity 0.2s;
+}
+
+/* Show on Group Hover */
+.group-item:hover .manage-group-btn {
+    opacity: 1;
+}
+.manage-group-btn:hover { background-color: var(--border-color); color: var(--text-primary); }
+
+/* MANAGEMENT MODE STYLES */
+.group-item.managing .manage-group-btn {
+    opacity: 1;
+    color: var(--accent-color); /* Active state */
+    background-color: rgba(0, 96, 223, 0.1);
+}
+
+/* Delete Button on Themes (Only visible in managing mode) */
+.theme-delete-btn {
+    margin-left: auto;
+    width: 20px; height: 20px;
+    display: none; /* Hidden normally */
+    align-items: center; justify-content: center;
+    border-radius: 50%;
+    color: var(--danger-color);
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+.theme-delete-btn:hover { background-color: rgba(215, 0, 34, 0.1); }
+
+/* Show delete buttons when parent group is in 'managing' state */
+.group-item.managing .theme-delete-btn {
+    display: flex;
+}
+
+/* Hide the normal badge or selection state while managing to reduce clutter */
+.group-item.managing .rotation-badge { display: none; }
+
+/* ... [Existing CSS] ... */
+
+/* CONFIRMATION OVERLAY */
+#confirm-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+}
+
+#confirm-overlay h3 { margin: 0 0 10px; color: #fff; font-size: 16px; }
+#confirm-overlay p { margin: 0 0 20px; color: #ccc; font-size: 13px; line-height: 1.4; }
+
+.confirm-actions { display: flex; gap: 10px; }
+
+.confirm-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-cancel { background: #38383d; color: #fff; }
+.btn-cancel:hover { background: #4a4a4f; }
+
+.btn-danger { background: #d70022; color: #fff; }
+.btn-danger:hover { background: #a4001a; }

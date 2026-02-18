@@ -434,31 +434,83 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener("DOMContentLoaded", () => {
   const footer = document.getElementById("bug-footer");
-  if (!footer) return;
+  const modal = document.getElementById("bug-modal");
+  const cancelBtn = document.getElementById("cancel-bug-btn");
+  const submitBtn = document.getElementById("submit-bug-btn");
 
-  footer.addEventListener("click", async () => {
-    const report = prompt("Describe the bug:");
-    if (!report) return;
+  if (!footer || !modal) return;
 
-    const webhookUrl = "https://discord.com/api/webhooks/1473149576486846687/ujdxZv8Jaei5qNXiNkzEStWkxFuZcu_qgY-KPwKeqiZGNP2Y4LwSvnAVOwwHHD_thAtU";
-    const payload = { content: `Bug report: ${report}` };
+  // Sanitization helper
+  function sanitize(str) {
+      if (!str) return "N/A";
+      return str
+          .replace(/@/g, '&#64;') // Prevent Discord @everyone/@here pings
+          .replace(/</g, '&lt;')  // Prevent HTML/Markdown injection
+          .replace(/>/g, '&gt;')
+          .trim()
+          .slice(0, 1000);        // Hard limit length to respect Discord limits
+  }
 
-    try {
-      const res = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+  // Open modal
+  footer.addEventListener("click", () => {
+      modal.style.display = "flex";
+  });
 
-      if (res.ok) {
-        alert("Bug report sent — thank you!");
-      } else {
-        console.error(await res.text());
-        alert("Failed to send report. Check console for details.");
+  // Close modal
+  cancelBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+      document.getElementById("bug-desc").value = "";
+      document.getElementById("bug-steps").value = "";
+  });
+
+  // Submit Logic
+  submitBtn.addEventListener("click", async () => {
+      const type = document.getElementById("bug-type").value;
+      const severity = document.getElementById("bug-severity").value;
+      const desc = sanitize(document.getElementById("bug-desc").value);
+      const steps = sanitize(document.getElementById("bug-steps").value);
+
+      if (desc === "N/A" || desc.length < 5) {
+          alert("Please provide a bit more detail in the description.");
+          return;
       }
-    } catch (e) {
-      console.error("Error sending report:", e);
-      alert("Error sending report.");
-    }
+
+      submitBtn.textContent = "Sending...";
+      submitBtn.disabled = true;
+
+      // Gather environment details automatically
+      const systemInfo = sanitize(navigator.userAgent);
+      const activeThemes = sanitize(rotationList.map(t => t.name).join(", ") || "None");
+      const isDark = document.body.hasAttribute('data-theme') ? "Yes" : "No";
+
+      // Package everything up nicely
+      const payloadObj = {
+          type,
+          severity,
+          description: desc,
+          steps,
+          environment: `OS/Browser: ${systemInfo}\nDark Mode UI: ${isDark}\nThemes in Rotation: ${activeThemes}`
+      };
+
+      try {
+          // Send to background script instead of direct fetch
+          const response = await browser.runtime.sendMessage({ 
+              type: "reportBug", 
+              data: payloadObj 
+          });
+
+          if (response && response.success) {
+              alert("Bug report sent — thank you!");
+              cancelBtn.click(); // close and reset
+          } else {
+              alert("Failed to send report. Please check your internet connection.");
+          }
+      } catch (e) {
+          console.error("Messaging error:", e);
+          alert("Error communicating with background script.");
+      } finally {
+          submitBtn.textContent = "Submit Report";
+          submitBtn.disabled = false;
+      }
   });
 });

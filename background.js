@@ -52,8 +52,52 @@ function applyThemeLogic(theme, isDarkMode) {
 
 browser.runtime.onMessage.addListener(async (message) => {
   if (message.type === "reportBug") {
-    const webhookUrl = "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_TOKEN";
+    const webhookUrl = "https://discord.com/api/webhooks/1473149576486846687/ujdxZv8Jaei5qNXiNkzEStWkxFuZcu_qgY-KPwKeqiZGNP2Y4LwSvnAVOwwHHD_thAtU";
     const payload = { content: `🐞 **Bug Report:**\n${message.text}` };
+
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) console.error("Discord error:", await res.text());
+      return { success: res.ok };
+    } catch (e) {
+      console.error("Fetch failed:", e);
+      return { success: false, error: e.message };
+    }
+  }
+})
+
+browser.runtime.onMessage.addListener(async (message) => {
+  if (message.type === "reportBug") {
+    // Make sure to insert your actual webhook URL here!
+    const webhookUrl = "https://discord.com/api/webhooks/1473149576486846687/ujdxZv8Jaei5qNXiNkzEStWkxFuZcu_qgY-KPwKeqiZGNP2Y4LwSvnAVOwwHHD_thAtU";
+    
+    const d = message.data;
+    
+    // Choose embed color based on severity
+    let embedColor = 3447003; // Default Blue
+    if (d.severity === "High") embedColor = 15158332; // Red
+    else if (d.severity === "Medium") embedColor = 16776960; // Yellow
+
+    const payload = {
+      embeds: [
+        {
+          title: `🐞 New Report: ${d.type}`,
+          color: embedColor,
+          fields: [
+            { name: "Severity", value: d.severity, inline: true },
+            { name: "Description", value: d.description },
+            { name: "Steps to Reproduce", value: d.steps },
+            { name: "Environment Info", value: `\`\`\`${d.environment}\`\`\`` }
+          ],
+          timestamp: new Date().toISOString()
+        }
+      ]
+    };
 
     try {
       const res = await fetch(webhookUrl, {

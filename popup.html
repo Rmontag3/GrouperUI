@@ -71,6 +71,36 @@
     <span>Report Bug</span>
   </footer>
 
+  <div id="bug-modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Report an Issue</h3>
+      <label>Type of Issue</label>
+      <select id="bug-type">
+        <option value="Bug">Bug / Error</option>
+        <option value="Feature Request">Feature Request</option>
+        <option value="Theme Issue">Theme Application Issue</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label>Severity</label>
+      <select id="bug-severity">
+        <option value="Low">Low - Annoying</option>
+        <option value="Medium">Medium - Core feature broken</option>
+        <option value="High">High - Extension crashes</option>
+      </select>
+
+      <label>Description</label>
+      <textarea id="bug-desc" placeholder="What happened?"></textarea>
+
+      <label>Steps to Reproduce</label>
+      <textarea id="bug-steps" placeholder="1. Clicked this...&#10;2. Expected that..."></textarea>
+
+      <div class="bug-actions">
+        <button id="cancel-bug-btn" class="btn-cancel">Cancel</button>
+        <button id="submit-bug-btn" class="btn-submit">Submit Report</button>
+      </div>
+    </div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>

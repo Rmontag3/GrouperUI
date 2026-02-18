@@ -310,7 +310,7 @@ function enforceGroupLimits() {
     let changesMade = false;
     for (let i = 0; i < themeData.length; i++) {
         let group = themeData[i];
-        if (group.type === 'system') continue;
+        if (group.id === 'defaults') continue;
         if (group.themes.length > MAX_THEMES_PER_GROUP) {
             const excess = group.themes.splice(MAX_THEMES_PER_GROUP);
             let nextGroup = themeData[i + 1];

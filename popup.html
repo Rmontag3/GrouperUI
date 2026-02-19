@@ -101,6 +101,53 @@
       </div>
     </div>
   </div>
+<div id="color-modal" style="display: none;">
+    <div class="modal-content modal-large">
+      <h3>Create Advanced Theme</h3>
+      
+      <div class="input-group">
+        <input type="text" id="color-name" placeholder="Theme Name (e.g., Synthwave)">
+      </div>
+
+      <div class="theme-type-tabs">
+        <button id="tab-solid" class="tab-btn active">Solid Color</button>
+        <button id="tab-gradient" class="tab-btn">Gradient Image</button>
+      </div>
+
+      <div class="color-targets" id="color-targets" style="display: none;">
+        <button id="target-c1" class="target-btn active">Color 1: <span id="label-c1">#0060DF</span></button>
+        <button id="target-c2" class="target-btn">Color 2: <span id="label-c2">#8000FF</span></button>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-row">
+          <label>Red</label><input type="range" id="slider-r" min="0" max="255" value="0">
+        </div>
+        <div class="slider-row">
+          <label>Green</label><input type="range" id="slider-g" min="0" max="255" value="96">
+        </div>
+        <div class="slider-row">
+          <label>Blue</label><input type="range" id="slider-b" min="0" max="255" value="223">
+        </div>
+        <div class="slider-row separator"></div>
+        <div class="slider-row">
+          <label>Dark/Light</label><input type="range" id="slider-luma" min="-50" max="50" value="0">
+        </div>
+        <div class="slider-row" id="row-angle" style="display: none;">
+          <label>Angle</label><input type="range" id="slider-angle" min="0" max="360" value="90">
+        </div>
+      </div>
+
+      <div class="preview-section">
+        <div id="color-preview-box" class="color-preview-box"></div>
+      </div>
+
+      <div class="bug-actions">
+        <button id="cancel-color-btn" class="btn-cancel">Cancel</button>
+        <button id="save-color-btn" class="btn-submit">Save Theme</button>
+      </div>
+    </div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>

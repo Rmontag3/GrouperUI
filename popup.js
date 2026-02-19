@@ -1,4 +1,12 @@
-// --- CONFIGURATION ---
+// ==============================================
+//  GROUPMATIC - Theme Management Extension for Firefox
+// ==============================================
+
+
+// --------------------------------------------------------------
+// 1. CONSTANTS & CONFIG
+// --------------------------------------------------------------
+    
 const BUILTIN_IDS = {
     DEFAULT: 'default-theme@mozilla.org',
     LIGHT: 'firefox-compact-light@mozilla.org',
@@ -603,23 +611,6 @@ function enforceGroupLimits() {
     if (changesMade) saveUserGroups();
 }
 
-function handleGroupSpecificAdd(group) {
-    if (group.type === 'colors_only') {
-        const name = prompt("Color Theme Name:");
-        if (!name) return;
-        const color = prompt("Hex Code:");
-        if (color) {
-            group.themes.push({ name: name, type: 'custom', color: color, preview: color });
-            enforceGroupLimits();
-            saveUserGroups();
-            renderGroups();
-        }
-    } else if (group.type === 'images_only') {
-        browser.tabs.create({ url: browser.runtime.getURL("uploader.html") }); 
-        window.close(); 
-    }
-}
-
 function saveUserGroups() {
     const userGroupsOnly = themeData.filter(g => g.type !== 'system');
     const isDark = document.body.hasAttribute('data-theme');
@@ -699,79 +690,342 @@ function showThemeContextMenu(e, group, theme) {
 document.addEventListener('click', (e) => {
     if (!contextMenu.contains(e.target)) contextMenu.classList.add('hidden');
 });
+// --- ADVANCED COLOR & GRADIENT LOGIC ---
+let targetColorGroup = null;
+
+function handleGroupSpecificAdd(group) {
+    if (group.type === 'colors_only') {
+        targetColorGroup = group;
+        document.getElementById('color-name').value = '';
+        
+        if (typeof window.resetAdvancedColorModal === 'function') {
+            window.resetAdvancedColorModal();
+        }
+        
+        document.getElementById('color-modal').style.display = 'flex';
+    } else if (group.type === 'images_only') {
+        browser.tabs.create({ url: browser.runtime.getURL("uploader.html") }); 
+        window.close(); 
+    }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
-  const footer = document.getElementById("bug-footer");
-  const modal = document.getElementById("bug-modal");
-  const cancelBtn = document.getElementById("cancel-bug-btn");
-  const submitBtn = document.getElementById("submit-bug-btn");
+    // ==========================================
+    // 1. COLOR MODAL LOGIC
+    // ==========================================
+    const colorModal = document.getElementById('color-modal');
+    
+    if (colorModal) {
+        let isGradient = false;
+        let activeTarget = 1; 
+        
+        // Added 'luma' memory to track light/dark changes independently
+        let colors = {
+            1: { r: 0, g: 96, b: 223, hex: '#0060DF', baseR: 0, baseG: 96, baseB: 223, luma: 0 },
+            2: { r: 128, g: 0, b: 255, hex: '#8000FF', baseR: 128, baseG: 0, baseB: 255, luma: 0 }
+        };
 
-  if (!footer || !modal) return;
+        const tabSolid = document.getElementById('tab-solid');
+        const tabGradient = document.getElementById('tab-gradient');
+        const colorTargets = document.getElementById('color-targets');
+        const targetC1 = document.getElementById('target-c1');
+        const targetC2 = document.getElementById('target-c2');
+        const labelC1 = document.getElementById('label-c1');
+        const labelC2 = document.getElementById('label-c2');
+        const sliderR = document.getElementById('slider-r');
+        const sliderG = document.getElementById('slider-g');
+        const sliderB = document.getElementById('slider-b');
+        const sliderLuma = document.getElementById('slider-luma');
+        const sliderAngle = document.getElementById('slider-angle');
+        const rowAngle = document.getElementById('row-angle');
+        const previewBox = document.getElementById('color-preview-box');
 
-  function sanitize(str) {
-      if (!str) return "N/A";
-      return str
-          .replace(/@/g, '&#64;') 
-          .replace(/</g, '&lt;')  
-          .replace(/>/g, '&gt;')
-          .trim()
-          .slice(0, 1000);        
-  }
+        // --- CORE MATH FUNCTIONS ---
+        function rgbToHex(r, g, b) {
+            return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+        }
 
-  footer.addEventListener("click", () => {
-      modal.style.display = "flex";
-  });
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h = 0, s = 0, l = (max + min) / 2;
+            if (max !== min) {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return { h, s, l };
+        }
 
-  cancelBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-      document.getElementById("bug-desc").value = "";
-      document.getElementById("bug-steps").value = "";
-  });
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            if (s === 0) r = g = b = l; 
+            else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+        }
 
-  submitBtn.addEventListener("click", async () => {
-      const type = document.getElementById("bug-type").value;
-      const severity = document.getElementById("bug-severity").value;
-      const desc = sanitize(document.getElementById("bug-desc").value);
-      const steps = sanitize(document.getElementById("bug-steps").value);
+        function generateGradientPNG(color1, color2, angleDeg) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 3000; 
+            canvas.height = 200; 
+            const ctx = canvas.getContext('2d');
 
-      if (desc === "N/A" || desc.length < 5) {
-          alert("Please provide a bit more detail in the description.");
-          return;
-      }
+            const angleRad = (angleDeg - 90) * Math.PI / 180;
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const length = Math.abs(canvas.width * Math.cos(angleRad)) + Math.abs(canvas.height * Math.sin(angleRad));
+            
+            const x1 = cx - Math.cos(angleRad) * length / 2;
+            const y1 = cy - Math.sin(angleRad) * length / 2;
+            const x2 = cx + Math.cos(angleRad) * length / 2;
+            const y2 = cy + Math.sin(angleRad) * length / 2;
 
-      submitBtn.textContent = "Sending...";
-      submitBtn.disabled = true;
+            const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
 
-      const systemInfo = sanitize(navigator.userAgent);
-      const activeThemes = sanitize(rotationList.map(t => t.name).join(", ") || "None");
-      const isDark = document.body.hasAttribute('data-theme') ? "Yes" : "No";
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const payloadObj = {
-          type,
-          severity,
-          description: desc,
-          steps,
-          environment: `OS/Browser: ${systemInfo}\nDark Mode UI: ${isDark}\nThemes in Rotation: ${activeThemes}`
-      };
+            return canvas.toDataURL('image/png');
+        }
 
-      try {
-          const response = await browser.runtime.sendMessage({ 
-              type: "reportBug", 
-              data: payloadObj 
-          });
+        function updatePreview() {
+            if (isGradient) {
+                const angle = sliderAngle.value;
+                previewBox.style.background = `linear-gradient(${angle}deg, ${colors[1].hex}, ${colors[2].hex})`;
+            } else {
+                previewBox.style.background = colors[1].hex;
+            }
+        }
 
-          if (response && response.success) {
-              alert("Bug report sent — thank you!");
-              cancelBtn.click(); 
-          } else {
-              alert("Failed to send report. Please check your internet connection.");
-          }
-      } catch (e) {
-          console.error("Messaging error:", e);
-          alert("Error communicating with background script.");
-      } finally {
-          submitBtn.textContent = "Submit Report";
-          submitBtn.disabled = false;
-      }
-  });
+        // Moves the RGB base color. Does NOT touch the luma slider, except to reset it.
+        window.updateColorFromSliders = function() {
+            const r = parseInt(sliderR.value);
+            const g = parseInt(sliderG.value);
+            const b = parseInt(sliderB.value);
+            
+            // Set as the new base color
+            colors[activeTarget].baseR = r;
+            colors[activeTarget].baseG = g;
+            colors[activeTarget].baseB = b;
+            
+            // Reset Luma modifier because they picked a new raw color
+            sliderLuma.value = 0;
+            colors[activeTarget].luma = 0;
+            
+            // Output is identical to base since luma is 0
+            colors[activeTarget].r = r;
+            colors[activeTarget].g = g;
+            colors[activeTarget].b = b;
+            colors[activeTarget].hex = rgbToHex(r, g, b);
+            
+            if (activeTarget === 1) labelC1.textContent = colors[1].hex;
+            else labelC2.textContent = colors[2].hex;
+            
+            updatePreview();
+        };
+
+        // Changes light/dark. Does NOT touch the RGB sliders.
+        window.updateBrightness = function() {
+            const lumaVal = parseInt(sliderLuma.value);
+            colors[activeTarget].luma = lumaVal; // Save the modifier
+            
+            const adjustment = lumaVal / 100; 
+            const baseHsl = rgbToHsl(colors[activeTarget].baseR, colors[activeTarget].baseG, colors[activeTarget].baseB);
+            
+            let newL = Math.max(0, Math.min(1, baseHsl.l + adjustment));
+            const newRgb = hslToRgb(baseHsl.h, baseHsl.s, newL);
+            
+            colors[activeTarget].r = newRgb.r;
+            colors[activeTarget].g = newRgb.g;
+            colors[activeTarget].b = newRgb.b;
+            colors[activeTarget].hex = rgbToHex(newRgb.r, newRgb.g, newRgb.b);
+            
+            if (activeTarget === 1) labelC1.textContent = colors[1].hex;
+            else labelC2.textContent = colors[2].hex;
+            
+            updatePreview();
+        };
+
+        function loadTargetToSliders(targetNum) {
+            activeTarget = targetNum;
+            if (targetNum === 1) {
+                targetC1.classList.add('active'); targetC2.classList.remove('active');
+            } else {
+                targetC2.classList.add('active'); targetC1.classList.remove('active');
+            }
+            
+            // Load the Base Color into the RGB sliders so they stay put
+            sliderR.value = colors[activeTarget].baseR;
+            sliderG.value = colors[activeTarget].baseG;
+            sliderB.value = colors[activeTarget].baseB;
+            
+            // Restore the Luma slider to whatever it was for this target
+            sliderLuma.value = colors[activeTarget].luma; 
+        }
+
+        window.resetAdvancedColorModal = function() {
+            isGradient = false;
+            activeTarget = 1;
+            colors = { 
+                1: { r: 0, g: 96, b: 223, hex: '#0060DF', baseR: 0, baseG: 96, baseB: 223, luma: 0 }, 
+                2: { r: 128, g: 0, b: 255, hex: '#8000FF', baseR: 128, baseG: 0, baseB: 255, luma: 0 }
+            };
+            
+            tabSolid.classList.add('active'); tabGradient.classList.remove('active');
+            colorTargets.style.display = 'none';
+            rowAngle.style.display = 'none';
+            sliderAngle.value = 90;
+            
+            labelC1.textContent = colors[1].hex; labelC2.textContent = colors[2].hex;
+            loadTargetToSliders(1);
+            updatePreview();
+        };
+
+        sliderR.addEventListener('input', window.updateColorFromSliders);
+        sliderG.addEventListener('input', window.updateColorFromSliders);
+        sliderB.addEventListener('input', window.updateColorFromSliders);
+        sliderLuma.addEventListener('input', window.updateBrightness);
+        sliderAngle.addEventListener('input', updatePreview);
+
+        tabSolid.addEventListener('click', () => {
+            isGradient = false;
+            tabSolid.classList.add('active'); tabGradient.classList.remove('active');
+            colorTargets.style.display = 'none'; rowAngle.style.display = 'none';
+            loadTargetToSliders(1);
+            updatePreview();
+        });
+
+        tabGradient.addEventListener('click', () => {
+            isGradient = true;
+            tabGradient.classList.add('active'); tabSolid.classList.remove('active');
+            colorTargets.style.display = 'flex'; rowAngle.style.display = 'flex';
+            updatePreview();
+        });
+
+        targetC1.addEventListener('click', () => loadTargetToSliders(1));
+        targetC2.addEventListener('click', () => loadTargetToSliders(2));
+
+        document.getElementById('cancel-color-btn').addEventListener('click', () => {
+            colorModal.style.display = 'none';
+            targetColorGroup = null;
+        });
+
+        document.getElementById('save-color-btn').addEventListener('click', () => {
+            if (!targetColorGroup) return;
+            
+            let name = document.getElementById('color-name').value.trim();
+            if (!name) name = isGradient ? "Gradient Theme" : "Custom Color";
+            
+            if (isGradient) {
+                const angle = parseInt(sliderAngle.value);
+                const pngDataURI = generateGradientPNG(colors[1].hex, colors[2].hex, angle);
+                
+                targetColorGroup.themes.push({ 
+                    name: name, 
+                    type: 'image',
+                    data: pngDataURI, 
+                    preview: `linear-gradient(${angle}deg, ${colors[1].hex}, ${colors[2].hex})`
+                });
+            } else {
+                const color = colors[1].hex;
+                targetColorGroup.themes.push({ name: name, type: 'custom', color: color, preview: color });
+            }
+
+            if (typeof enforceGroupLimits === 'function') enforceGroupLimits();
+            if (typeof saveUserGroups === 'function') saveUserGroups();
+            if (typeof renderGroups === 'function') renderGroups();
+
+            colorModal.style.display = 'none';
+            targetColorGroup = null;
+        });
+    }
+
+    // ==========================================
+    // 2. BUG REPORT MODAL LOGIC
+    // ==========================================
+    const footer = document.getElementById("bug-footer");
+    const modal = document.getElementById("bug-modal");
+    const cancelBtn = document.getElementById("cancel-bug-btn");
+    const submitBtn = document.getElementById("submit-bug-btn");
+
+    if (!footer || !modal) return;
+
+    function sanitize(str) {
+        if (!str) return "N/A";
+        return str.replace(/@/g, '&#64;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim().slice(0, 1000);        
+    }
+
+    footer.addEventListener("click", () => {
+        modal.style.display = "flex";
+    });
+
+    cancelBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+        document.getElementById("bug-desc").value = "";
+        document.getElementById("bug-steps").value = "";
+    });
+
+    submitBtn.addEventListener("click", async () => {
+        const type = document.getElementById("bug-type").value;
+        const severity = document.getElementById("bug-severity").value;
+        const desc = sanitize(document.getElementById("bug-desc").value);
+        const steps = sanitize(document.getElementById("bug-steps").value);
+
+        if (desc === "N/A" || desc.length < 5) {
+            alert("Please provide a bit more detail in the description.");
+            return;
+        }
+
+        submitBtn.textContent = "Sending...";
+        submitBtn.disabled = true;
+
+        const systemInfo = sanitize(navigator.userAgent);
+        const activeThemes = sanitize(rotationList.map(t => t.name).join(", ") || "None");
+        const isDark = document.body.hasAttribute('data-theme') ? "Yes" : "No";
+
+        const payloadObj = {
+            type,
+            severity,
+            description: desc,
+            steps,
+            environment: `OS/Browser: ${systemInfo}\nDark Mode UI: ${isDark}\nThemes in Rotation: ${activeThemes}`
+        };
+
+        try {
+            const response = await browser.runtime.sendMessage({ type: "reportBug", data: payloadObj });
+            if (response && response.success) {
+                alert("Bug report sent — thank you!");
+                cancelBtn.click(); 
+            } else {
+                alert("Failed to send report. Please check your internet connection.");
+            }
+        } catch (e) {
+            console.error("Messaging error:", e);
+            alert("Error communicating with background script.");
+        } finally {
+            submitBtn.textContent = "Submit Report";
+            submitBtn.disabled = false;
+        }
+    });
 });

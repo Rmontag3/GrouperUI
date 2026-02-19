@@ -9,7 +9,34 @@
     --danger-color: #d70022;
     --font-stack: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
+/* FIX: Prevents "double vision" text highlighting during drag */
+body {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
 
+/* Restores selection for your bug reporting inputs */
+input, textarea {
+    user-select: auto;
+    -moz-user-select: auto;
+    -webkit-user-select: auto;
+}
+
+.is-dragging {
+    opacity: 0.4;
+    background-color: var(--bg-hover) !important;
+}
+
+.drag-handle {
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+}
+.drag-handle:active {
+    cursor: grabbing;
+}
 /* Dark Mode Variables */
 [data-theme="dark"] {
     --bg-color: #1c1b22;
@@ -96,6 +123,13 @@ body {
 }
 
 /* Add Button inside Group */
+/* Update your group controls and add button CSS */
+.group-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px; /* This packs the icons tightly together */
+}
+
 .add-theme-btn {
     width: 24px; height: 24px;
     border-radius: 4px;
@@ -103,9 +137,13 @@ body {
     cursor: pointer;
     color: var(--text-secondary);
     font-weight: bold; font-size: 16px;
+    transition: background-color 0.2s, color 0.2s;
 }
-.add-theme-btn:hover { background-color: var(--border-color); color: var(--accent-color); }
 
+.add-theme-btn:hover { 
+    background-color: var(--border-color); 
+    color: var(--accent-color); 
+}
 /* Dropdown Menu */
 .theme-nested-menu {
     display: none;
@@ -408,4 +446,70 @@ body.selection-mode .theme-option.selected {
 }
 .btn-submit:hover {
     background: var(--accent-hover);
+}
+
+/* Quick Rename Button */
+.rename-group-btn {
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    background-color: transparent;
+    opacity: 0; 
+    transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.group-item:hover .rename-group-btn {
+    opacity: 1;
+}
+
+.rename-group-btn:hover { 
+    background-color: var(--border-color); 
+    color: var(--text-primary); 
+}
+
+/* LIFT AND STICK STYLES */
+.lift-ghost {
+    position: fixed;
+    pointer-events: none; /* Allows the mouse to click through it */
+    z-index: 9999;
+    background: var(--accent-color);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.95;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.drop-target, .drop-target-group {
+    border-top: 2px solid var(--accent-color) !important;
+    background-color: rgba(0, 96, 223, 0.05);
+}
+
+body.is-lifting, body.is-lifting * {
+    cursor: crosshair !important;
+    user-select: none !important;
+}
+
+.drag-handle {
+    cursor: pointer; /* Changed to pointer since it's now a click-to-lift */
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+}
+.drag-handle:hover {
+    color: var(--text-primary);
+}
+
+/* Force the Plus Button to ALWAYS remain visible */
+.add-theme-btn {
+    opacity: 1 !important;
+}
+
+/* Force the nested menu to stay expanded statically in management mode */
+.group-item.managing .theme-nested-menu {
+    display: block !important;
 }

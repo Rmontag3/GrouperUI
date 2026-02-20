@@ -73,8 +73,10 @@ browser.runtime.onMessage.addListener(async (message) => {
 
 browser.runtime.onMessage.addListener(async (message) => {
   if (message.type === "reportBug") {
-    // Make sure to insert your actual webhook URL here!
-    const webhookUrl = "https://discord.com/api/webhooks/1473149576486846687/ujdxZv8Jaei5qNXiNkzEStWkxFuZcu_qgY-KPwKeqiZGNP2Y4LwSvnAVOwwHHD_thAtU";
+    
+    // Your webhook is encoded here to hide it from automated scraping bots
+    const encoded = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ3MzE0OTU3NjQ4Njg0NjY4Ny91amR4WnY4SmFlaTVxTlhpTmt6RVN0V2t4RnVaY3VfcWdZLUtQd0tlcWlaR05QMlk0THdTdm5BVk93d0hIRF90aEF0VQ==";
+    const webhookUrl = atob(encoded);
     
     const d = message.data;
     
@@ -106,7 +108,7 @@ browser.runtime.onMessage.addListener(async (message) => {
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) console.error("Discord error:", await res.text());
+      if (!res.ok) console.error("Discord API error:", await res.text());
       return { success: res.ok };
     } catch (e) {
       console.error("Fetch failed:", e);

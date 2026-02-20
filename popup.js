@@ -1,12 +1,61 @@
-// ==============================================
-//  GROUPMATIC - Theme Management Extension for Firefox
-// ==============================================
-
-
+/* 
+==============================================
+GROUPMATIC - Theme Management Extension for Firefox                                                                                                   
+==============================================                                                                                              
+                                                                                                    
+          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%##################*++++++++++++++       
+       %%%***************************************************%%****************##*************++    
+      %%*******************************************************%#****************##************++   
+     %%*********************************************************%%++++++++++++++++#**************+  
+    %%***********************************************************%+++++++++++++++++#**************+ 
+    %%***********************************************************%%++++++++++++++++#**************+ 
+    %%***********************************************************%%++++++++++++++++#**************+ 
+    %%***********************************************************%%++++++++++++++++#**************+ 
+    %%***********************************************************%%++++++++++++++++#**************+ 
+    %%***********************************..**********************%%++++++++++++++++#**************+ 
+    %%*********************************-....*********************%%++++++++++++++++#**************+ 
+    %%********************************:......+*******************%%++++++++++++++++#**************+ 
+    %%*******************************:::...::::******************%%++++++++++++++++#**************+ 
+    %%**************-***************::::::::::::+****************%%++++++++++++++++#**************+ 
+    %%************---*****-********:::::::::::::::***************%%================#**************+ 
+    %%***********==--***=--********:::::::::::::::::*:***********%%================#**************+ 
+    %%*********======---===*****++++++*+:::::::::::::*::*********%%================#**************+ 
+    %%********=========-----+*+++++++++****:::::::::::*::********%%================#**************+ 
+    %%*******===========------++++++++++++***:::::::::::::*******%%================#**************+ 
+    %%*******========----=-------++++++++*-:::::::::::::::*******%%================#**************+ 
+    %%******++====---------::----::++++++***::::::::::::::=******%%================#**************+ 
+    %%******+++=====--------:::::+++++++++***::::----::::::******%%================#**************+ 
+    %%******+++++=======--+***+++++++++++****::::-----:::::******%%================#**************+ 
+    %%******++++++++====-#*********+++++*****--------:::-::******%%================#**************+ 
+    %%*******+++++++++==-####***************#----=---:::--:******%%================#**************+ 
+    %%*******++++++++++++-#######**********#-----=--------*******%%================#**************+ 
+    %%********++++++++++++=################=====----------*******%%================#**************+ 
+    %%**********+++++++++++++############========-----==-********%%----------------#**************+ 
+    %%********#**+++++++++++++++++***++++===========-===*********%%----------------#**************+ 
+    %%*************++++++++++++++++++++++++++======+===**********%%----------------#**************+ 
+    %%***************+++++++++++++++++++++++++++++++++***********%%----------------#**************+ 
+    %%************#****++++++++++++++++++++++++**+++*************%%----------------#**************+ 
+    %%*********************+++++++++++++++++*********************%%----------------#**************+ 
+    %%***********************************************************%%----------------###############+ 
+    %%***********************************************************%%----------------###############+ 
+    %%***********************************************************%%----------------###############+ 
+    %%***********************************************************%%----------------###############+ 
+    %%***********************************************************%%----------------###############+ 
+    %%***********************************************************%%----------------###############+ 
+    %%***********************************************************%-----------------###############+ 
+     %**********************************************************%%----------------###############++ 
+      %********************************************************%%----------------###############++  
+       %%****************************************************#%%---------------###############++*   
+         %%%%*********************************************%%%+-------------=##############*+++      
+             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#################*+++++++++++++++          
+                                                                                                    
+                                                                                                    
+                                                                                                    
+          /*/                                                                                          
 // --------------------------------------------------------------
-// 1. CONSTANTS & CONFIG
+// CONSTANTS & CONFIG
 // --------------------------------------------------------------
-    
+
 const BUILTIN_IDS = {
     DEFAULT: 'default-theme@mozilla.org',
     LIGHT: 'firefox-compact-light@mozilla.org',
@@ -25,14 +74,21 @@ const DEFAULTS_GROUP = {
     ]
 };
 
-// --- GLOBAL STATE ---
+    
+// --------------------------------------------------------------
+// GLOBAL STATE
+// --------------------------------------------------------------
+
 let themeData = [];
 let rotationList = []; 
 let isSelectionMode = false; 
 let rotationInterval = 30; 
 let managingGroupId = null; 
 
-// --- LIFT AND STICK STATE ---
+// --------------------------------------------------------------
+// LIFT AND STICK STATE
+// --------------------------------------------------------------
+
 let liftState = null; 
 let hoveredTarget = null; 
 
@@ -41,7 +97,10 @@ const contextMenu = document.getElementById('context-menu');
 const darkModeToggle = document.getElementById('dark-mode-toggle');
 const rotateToggle = document.getElementById('rotate-toggle');
 
-// --- INIT ---
+// --------------------------------------------------------------
+// INITIALIZATION
+// --------------------------------------------------------------
+
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
@@ -109,7 +168,10 @@ async function init() {
     renderGroups();
 }
 
-// --- RENDER ---
+// --------------------------------------------------------------
+// RENDERING & INTERACTION LOGIC
+// --------------------------------------------------------------
+
 function renderGroups() {
     const currentHeight = document.body.offsetHeight;
     if (currentHeight > 0) document.body.style.minHeight = currentHeight + 'px';
@@ -120,8 +182,7 @@ function renderGroups() {
         const groupEl = document.createElement('div');
         groupEl.className = 'group-item';
         if (managingGroupId === group.id) groupEl.classList.add('managing');
-        
-        // Group Name
+        // GROUP NAME
         const nameSpan = document.createElement('span');
         nameSpan.className = 'group-name';
         nameSpan.style.display = 'flex';
@@ -389,7 +450,9 @@ function renderGroups() {
     });
 }
 
-// --- LIFT AND STICK API ---
+// --------------------------------------------------------------
+// LIFT + STICK API
+// --------------------------------------------------------------
 
 function startLift(type, gIndex, tIndex, e, name) {
     cancelLift(); 
@@ -477,7 +540,9 @@ function executeLiftDrop() {
     renderGroups();
 }
 
-// --- DELETE LOGIC ---
+// --------------------------------------------------------------
+// DELETION
+// --------------------------------------------------------------
 function performDelete(group, theme) {
     if (theme.type === 'addon') {
         // ROUTES TO SPECIFIC THEME UNINSTALL TAB
@@ -501,7 +566,10 @@ function performDelete(group, theme) {
     }
 }
 
-// --- ROTATION ---
+// --------------------------------------------------------------
+// TIME ROTATION
+// --------------------------------------------------------------
+
 rotateToggle.onclick = async () => {
     managingGroupId = null;
     if (isSelectionMode) {
@@ -550,8 +618,9 @@ function isThemeSelected(theme) {
     return rotationList.some(t => t.name === theme.name && t.type === theme.type && (t.id === theme.id || t.color === theme.color));
 }
 
-// --- THEME APPLICATION ---
-function applyTheme(theme) {
+// --------------------------------------------------------------
+// THEME APPLICATION
+// --------------------------------------------------------------function applyTheme(theme) {
     const isUIInDarkMode = document.body.hasAttribute('data-theme');
     if (theme.type === 'builtin' || theme.type === 'addon') {
         if (browser.management) browser.management.setEnabled(theme.id, true);
@@ -580,7 +649,9 @@ function applyTheme(theme) {
     }
 }
 
-// --- UTILS ---
+// --------------------------------------------------------------
+// UTILITIES 
+// --------------------------------------------------------------
 function enforceGroupLimits() {
     let changesMade = false;
     for (let i = 0; i < themeData.length; i++) {
@@ -690,7 +761,10 @@ function showThemeContextMenu(e, group, theme) {
 document.addEventListener('click', (e) => {
     if (!contextMenu.contains(e.target)) contextMenu.classList.add('hidden');
 });
-// --- ADVANCED COLOR & GRADIENT LOGIC ---
+
+// --------------------------------------------------------------
+// INITIALIZATION
+// --------------------------------------------------------------
 let targetColorGroup = null;
 
 function handleGroupSpecificAdd(group) {
@@ -818,18 +892,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // Moves the RGB base color. Does NOT touch the luma slider, except to reset it.
+        // Moves R , G , B slider.
         window.updateColorFromSliders = function() {
             const r = parseInt(sliderR.value);
             const g = parseInt(sliderG.value);
             const b = parseInt(sliderB.value);
             
-            // Set as the new base color
+            // Sets color
             colors[activeTarget].baseR = r;
             colors[activeTarget].baseG = g;
             colors[activeTarget].baseB = b;
             
-            // Reset Luma modifier because they picked a new raw color
+            // Resets Luma modifier; base changed so old luma doesn't apply
             sliderLuma.value = 0;
             colors[activeTarget].luma = 0;
             
@@ -845,7 +919,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updatePreview();
         };
 
-        // Changes light/dark. Does NOT touch the RGB sliders.
+        // Changes brightness. Does NOT touch the RGB sliders.
         window.updateBrightness = function() {
             const lumaVal = parseInt(sliderLuma.value);
             colors[activeTarget].luma = lumaVal; // Save the modifier
@@ -875,12 +949,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 targetC2.classList.add('active'); targetC1.classList.remove('active');
             }
             
-            // Load the Base Color into the RGB sliders so they stay put
+            // Loads base color
             sliderR.value = colors[activeTarget].baseR;
             sliderG.value = colors[activeTarget].baseG;
             sliderB.value = colors[activeTarget].baseB;
             
-            // Restore the Luma slider to whatever it was for this target
+            // Restores slider
             sliderLuma.value = colors[activeTarget].luma; 
         }
 
